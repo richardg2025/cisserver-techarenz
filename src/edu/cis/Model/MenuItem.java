@@ -4,16 +4,20 @@ public class MenuItem {
     private String id;
     private String name;
     private String type;
-    private String price;
+    private double price;
     private String description;
     private int amountAvailable = 0;
 
-    public MenuItem(String name, String type, String id, String price, String description) {
+    public MenuItem(String name, String type, String id, double price, String description) {
         this.name = name;
         this.type = type;
         this.id = id;
         this.price = price;
         this.description = description;
+    }
+
+    public MenuItem() {
+
     }
 
     public String getName() {    
@@ -26,11 +30,11 @@ public class MenuItem {
 
     public String getId() {    
         return id;
-    }    
+    }
 
-    public String getPrice() {    
+    public double getPrice() {
         return price;
-    }    
+    }
 
     public String getDescription() {    
         return description;
@@ -40,7 +44,7 @@ public class MenuItem {
         return amountAvailable;
     }    
 
-    public void setAmountAvailable(int amountAvailable) {    
+    public void setAmountAvailable() {
         this.amountAvailable = amountAvailable;
     }               
 
@@ -56,7 +60,7 @@ public class MenuItem {
         this.id = id;
     }    
 
-    public void setPrice(String price) {    
+    public void setPrice(double price) {
         this.price = price;
     }    
 

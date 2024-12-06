@@ -11,6 +11,10 @@ public class Order {
         Type = type;
     }
 
+    public Order() {
+
+    }
+
     public String getItemID() {
         return itemID;
     }    

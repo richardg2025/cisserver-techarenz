@@ -1,5 +1,7 @@
 package edu.cis.Model;
 
+import java.util.ArrayList;
+
 public class CISUser {
     private String userID;
     private String name;
@@ -12,7 +14,11 @@ public class CISUser {
         this.name = name;
         this.yearLevel = yearLevel;
         this.orders = new ArrayList<Order>();
-        this.money = 100.0;
+        this.money = 50;
+    }
+
+    public CISUser() {
+
     }
 
     public String getUserID() {
@@ -57,5 +63,9 @@ public class CISUser {
 
     public String toString() {
         return "CISUser{" + "userID=" + userID + ", name=" + name + ", yearLevel=" + yearLevel + ", orders=" + orders + ", money=" + money + '}';
+    }
+
+    public void spend(double price) {
+        this.money -= price;
     }
 }

@@ -9,15 +9,13 @@ package edu.cis.Controller;
 
 import java.util.ArrayList;
 
-import javax.swing.plaf.metal.MetalBorders.MenuItemBorder;
-
 import acm.program.*;
+import edu.cis.Model.*;
+
 import edu.cis.Model.CISConstants;
 import edu.cis.Model.Request;
 import edu.cis.Model.SimpleServerListener;
 import edu.cis.Utils.SimpleServer;
-
-import java.util.Objects;
 
 
 public class CIServer extends ConsoleProgram
@@ -31,7 +29,7 @@ public class CIServer extends ConsoleProgram
     private SimpleServer server = new SimpleServer(this, PORT);
 
 
-    private ArrayList<User> users = new ArrayList<User>();
+    private ArrayList<CISUser> users = new ArrayList<CISUser>();
     private ArrayList<MenuItem> menu = new ArrayList<MenuItem>();
     private Menu menuObj = new Menu(menu);
 
@@ -80,9 +78,6 @@ public class CIServer extends ConsoleProgram
         else if(request.getCommand().equals(CISConstants.GET_CART)){
             return getCart(request);
         }
-        else if(request.getCommand().equals(CISConstants.GET_MENU)){
-            return getMenu(request);
-        }
         else if(request.getCommand().equals(CISConstants.ADD_MENU_ITEM)){
             return addMenuItem(request);
         }
@@ -96,12 +91,12 @@ public class CIServer extends ConsoleProgram
         return "Error: Unknown command " + cmd + ".";
     }
 
-    public String createUser(request request){
+    public String createUser(Request request){
         String userName = request.getParam(CISConstants.USER_NAME_PARAM);
         String yearLevel = request.getParam(CISConstants.YEAR_LEVEL_PARAM);
         String userID = request.getParam(CISConstants.USER_ID_PARAM);
 
-        if(name == null || yearLevel == null || userID == null){
+        if(userName == null || yearLevel == null || userID == null){
             return CISConstants.PARAM_MISSING_ERR;
         }
 
@@ -110,14 +105,14 @@ public class CIServer extends ConsoleProgram
         return CISConstants.SUCCESS;
     }
 
-    public String addMenuItem(request request){
+    public String addMenuItem(Request request){
         String menuItemName = request.getParam(CISConstants.ITEM_NAME_PARAM);
         String menuItemType = request.getParam(CISConstants.ITEM_TYPE_PARAM);
         String menuItemID = request.getParam(CISConstants.ITEM_ID_PARAM);
-        String price = request.getParam(CISConstants.PRICE_PARAM);
+        double price = Double.parseDouble(request.getParam(CISConstants.PRICE_PARAM));
         String description = request.getParam(CISConstants.DESC_PARAM); 
 
-        if(menuItemName == null || menuItemType == null || menuItemID == null || price == null || description == null){
+        if(menuItemName == null || menuItemType == null || menuItemID == null || price == 0 || description == null){
             return CISConstants.PARAM_MISSING_ERR;
         }
 
@@ -126,20 +121,22 @@ public class CIServer extends ConsoleProgram
         return CISConstants.SUCCESS;
     }
 
-    public String placeOrder(request request){
+    public String placeOrder(Request request){
         String userID = request.getParam(CISConstants.USER_ID_PARAM);
         String orderID = request.getParam(CISConstants.ORDER_ID_PARAM);
         String orderType = request.getParam(CISConstants.ORDER_TYPE_PARAM);
         String menuItemID = request.getParam(CISConstants.ITEM_ID_PARAM);
+        String name = request.getParam(CISConstants.USER_NAME_PARAM);
+        String yearLevel = request.getParam(CISConstants.YEAR_LEVEL_PARAM);
 
         if(orderID == null){
             return CISConstants.ORDER_INVALID_ERR;
         }
-        if(menuObj.size() == 0){
+        if(menu.size() == 0){
             return CISConstants.EMPTY_MENU_ERR;
         }
 
-        CISUser user = new CISUser();
+        CISUser user = new CISUser(userID, name, yearLevel);
         boolean userExists = false;
         for (CISUser u : users) {
             if(u.getUserID().equals(userID)){
@@ -174,15 +171,15 @@ public class CIServer extends ConsoleProgram
             }
         }
 
-        MenuItem menuItem = menuObj.getItem(menuItemID);
+        MenuItem item = new MenuItem();
         boolean menuItemExists = false;
         for (MenuItem m : menu) {
-            if(m.getItemID().equals(menuItemID)){
+            if(m.getId().equals(menuItemID)){
                 menuItemExists = true;
                 break;
             }
             //check if menu item is sold out or not using get amount avalible
-            if(m.getAmountAvailable() < 1 && m.getItemID().equals(menuItemID)){
+            if(m.getAmountAvailable() < 1 && m.getId().equals(menuItemID)){
                 return CISConstants.SOLD_OUT_ERR;
             }
         }
@@ -193,20 +190,22 @@ public class CIServer extends ConsoleProgram
             return CISConstants.USER_BROKE_ERR;
         }
 
-        Order order = new Order(orderID, orderType, menuItem, user);
-        item.setAmountAvailable(item.getAmountAvailable() - 1);
-        user.addOrder(order);
-        user.spendMoney(item.getPrice());
+        Order order = new Order(orderID, orderType, menuItemID);
+        item.setAmountAvailable();
+        user.getOrders().add(order);
+        user.spend(item.getPrice());
 
         return CISConstants.SUCCESS;
 
     }
 
-    public String deleteOrder(request request){
+    public String deleteOrder(Request request){
         String userID = request.getParam(CISConstants.USER_ID_PARAM);
         String orderID = request.getParam(CISConstants.ORDER_ID_PARAM);
+        String name = request.getParam(CISConstants.USER_NAME_PARAM);
+        String yearLevel = request.getParam(CISConstants.YEAR_LEVEL_PARAM);
 
-        CISUser user = new CISUser();
+        CISUser user = new CISUser(userID, name, yearLevel);
         boolean userExists = false;
         for (CISUser u : users) {
             if(u.getUserID().equals(userID)){
@@ -234,9 +233,12 @@ public class CIServer extends ConsoleProgram
         return CISConstants.SUCCESS;
     }   
 
-    public String getOrder (request request){
+    public String getOrder (Request request){
         String userID = request.getParam(CISConstants.USER_ID_PARAM);
-        CISUser user = new CISUser();
+        String name = request.getParam(CISConstants.USER_NAME_PARAM);
+        String yearLevel = request.getParam(CISConstants.YEAR_LEVEL_PARAM);
+
+        CISUser user = new CISUser(userID, name, yearLevel);
         boolean userExists = false;
         for (CISUser u : users) {
             if(u.getUserID().equals(userID)){
@@ -252,7 +254,7 @@ public class CIServer extends ConsoleProgram
         Order order = new Order();
         boolean orderExists = false;
         for (Order o : user.getOrders()) {
-            if(o.getOrderID().equals(orderID)){
+            if(o.getOrderID().equals(userID)){
                 order = o;
                 orderExists = true;
                 break;
@@ -264,9 +266,12 @@ public class CIServer extends ConsoleProgram
         return order.toString();
     }
 
-    public String getUser (request request){
+    public String getUser (Request request){
         String userID = request.getParam(CISConstants.USER_ID_PARAM);
-        CISUser user = new CISUser();
+        String name = request.getParam(CISConstants.USER_NAME_PARAM);
+        String yearLevel = request.getParam(CISConstants.YEAR_LEVEL_PARAM);
+
+        CISUser user = new CISUser(userID, name, yearLevel);
         boolean userExists = false;
         for (CISUser u : users) {
             if(u.getUserID().equals(userID)){
@@ -281,12 +286,12 @@ public class CIServer extends ConsoleProgram
         return user.toString();
     }
 
-    public String getItem (request request){
+    public String getItem (Request request){
         String menuItemID = request.getParam(CISConstants.ITEM_ID_PARAM);
         MenuItem menuItem = new MenuItem();
         boolean menuItemExists = false;
         for (MenuItem m : menu) {
-            if(m.getItemID().equals(menuItemID)){
+            if(m.getId().equals(menuItemID)){
                 menuItem = m;
                 return menuItem.toString();
             }
@@ -294,11 +299,17 @@ public class CIServer extends ConsoleProgram
         if(!menuItemExists){
             return CISConstants.INVALID_MENU_ITEM_ERR;
         }
+
+        String msg = menuItem.toString();
+        return msg;
     }
         
-    public String getCart (request request){ 
+    public String getCart (Request request){
         String userID = request.getParam(CISConstants.USER_ID_PARAM);
-        CISUser user = new CISUser();
+        String name = request.getParam(CISConstants.USER_NAME_PARAM);
+        String yearLevel = request.getParam(CISConstants.YEAR_LEVEL_PARAM);
+
+        CISUser user = new CISUser(userID, name, yearLevel);
         boolean userExists = false;
         for (CISUser u : users) {
             if(u.getUserID().equals(userID)){
@@ -309,11 +320,7 @@ public class CIServer extends ConsoleProgram
         }
         if(!userExists){
             return CISConstants.USER_INVALID_ERR;    
-        }    
-
-        if(user.getOrders().size() == 0){
-            return CISConstants.EMPTY_CART_ERR;
-        }   
+        }
         
         return user.getOrders().toString();
     }
