@@ -10,7 +10,7 @@ public class Menu {
         this.menu = menu;
     }
 
-    public ArrayList<MenuItem> getMenu(String menuItemID) {
+    public ArrayList<MenuItem> getMenu() {
         return menu;
     }
 
@@ -32,5 +32,14 @@ public class Menu {
 
     public void addMenuItem(MenuItem menuItem) {
         this.menu.add(menuItem);
+    }
+
+    public void updateMenuItemAmountAvailable(String menuItemID, int amountAvailable) {
+        for (MenuItem m : menu) {
+            if (m.getId().equals(menuItemID)) {
+                m.setAmountAvailable(amountAvailable);
+                break;
+            }
+        }
     }
 }

@@ -39,7 +39,7 @@ public class Order {
         this.itemID = itemID;
     }
 
+    @Override
     public String toString() {
-        return "Order{" + "itemID=" + itemID + ", orderID=" + orderID + ", Type=" + Type + '}';
-    }
-}
+        return "Order{itemID='" + itemID + "', type='" + Type + "', orderID='" + orderID + "'}";
+    }}

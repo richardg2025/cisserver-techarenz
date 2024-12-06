@@ -59,10 +59,20 @@ public class CISUser {
 
     public void setMoney(double money) {    
         this.money = money;        
-    }           
+    }
 
+    @Override
     public String toString() {
-        return "CISUser{" + "userID=" + userID + ", name=" + name + ", yearLevel=" + yearLevel + ", orders=" + orders + ", money=" + money + '}';
+        StringBuilder ordersString = new StringBuilder();
+        for (Order order : orders) {
+            ordersString.append(order.toString()).append(", ");
+        }
+        if (ordersString.length() > 0) {
+            ordersString.setLength(ordersString.length() - 2); // Remove trailing ", "
+        }
+
+        return "CISUser{userID='" + userID + "', name='" + name + "', yearLevel='" +
+                yearLevel + "', orders= " + ordersString + ", money=" + money + "}";
     }
 
     public void spend(double price) {
